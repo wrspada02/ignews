@@ -11,17 +11,22 @@ export default NextAuth({
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      type: 'oauth',
       authorization: {
-        params: { 
-          scope: 'read:user',
-        }
-      }
+        url: 'https://github.com/login/oauth/authorize',
+        params: { scope: 'read:user user:email'},
+      },
     }),
   ],
+  pages: {
+    signIn: '/api/auth/signin',
+    signOut: '/api/auth/signout'
+  },
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
         const { email } = user;
+
         await fauna.query(
           q.Create(
             q.Collection('users'),
@@ -29,7 +34,7 @@ export default NextAuth({
           )
         )
         return true;
-      } catch {
+      } catch (e) {
         return false;
       }
     },
