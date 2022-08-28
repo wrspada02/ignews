@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+# security
+.env
+
 # testing
 /coverage
 
@@ -30,4 +33,3 @@ yarn-error.log*
 
 # vercel
 .vercel
-.env
