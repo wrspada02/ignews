@@ -14,7 +14,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     const stripeCheckoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomer.id,
-      payment_method_options: { card: { setup_future_usage: "on_session" } },
       billing_address_collection: 'required',
       line_items: [
         { price: 'price_1LHacICdQWK1tqBM02OzAocL', quantity: 1 }
