@@ -1,4 +1,3 @@
-import { Stripe } from "@stripe/stripe-js";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { Readable } from 'stream';
@@ -22,18 +21,28 @@ export const config = {
     }
 }
 
+const relevantEvents = new Set([
+    'checkout.session.completed'
+]);
+
 // eslint-disable-next-line import/no-anonymous-default-export
 export default async(req: NextApiRequest, res: NextApiResponse) => {
     if(req.method === 'POST') {
         const buf = await buffer(req);
         const secret = req.headers['stripe-signature'];
 
-        let event : Stripe.Event;
+        let event: any;
 
         try {
             event = stripe.webhooks.constructEvent(buf, secret, process.env.STRIPE_WEBHOOK_SECRET);
         } catch(e) {
-            
+            return res.status(400).send(`Webhook error ${e.message}`);
+        }
+
+        const type = event.type;
+
+        if(!relevantEvents.has(type)) {
+            console.log(`evento`);
         }
 
         res.status(200).json({ ok : true });
