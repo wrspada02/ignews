@@ -23,74 +23,70 @@ export default NextAuth({
     signOut: '/api/auth/signout'
   },
   callbacks: {
-    async session(sessionObject) : Promise<Session> {
+    async session(sessionT) : Promise<Session> {
       try {
         const userActiveSubscription = await fauna.query(
           q.Get(
             q.Intersection([
               q.Match(
-                q.Index('subscription_by_user_ref'),
+                q.Index("subscription_by_user_ref"),
                 q.Select(
-                  'ref',
+                  "ref",
                   q.Get(
                     q.Match(
-                      q.Index('user_by_email'),
-                      q.Casefold(sessionObject.user.email)
+                      q.Index("user_by_email"),
+                      q.Casefold(sessionT.session.user?.email as string)
                     )
                   )
                 )
               ),
-              q.Match(
-                q.Index('subscription_by_status'),
-                'active'
-              )
+              q.Match(q.Index("subscription_by_status"), "active"),
             ])
           )
         );
-  
-        const { session } = sessionObject; 
+        const {session } = sessionT;
         return {
           ...session,
           activeSubscription: userActiveSubscription,
         };
-      } catch {        
-        const {session} = sessionObject;
+      } catch (error) {
+        const {session } = sessionT;
+
         return {
           ...session,
           activeSubscription: null,
-        }
+        };
       }
     },
-    async signIn({ user, account, profile }) {
-      try {
-        const { email } = user;
+    async signIn(user) {
+      const { user: userInfor } = user;
 
+      try {
         await fauna.query(
           q.If(
             q.Not(
               q.Exists(
                 q.Match(
-                  q.Index('user_by_email'),
-                  q.Casefold(user.email)
+                  q.Index("user_by_email"),
+                  q.Casefold(userInfor.email as string)
                 )
               )
+            ),
+            q.Create(q.Collection("users"), {
+              data: { email: userInfor.email },
+            }),
+            q.Get(
+              q.Match(
+                q.Index("user_by_email"),
+                q.Casefold(userInfor.email as string)
+              )
             )
-          ,
-          q.Create(
-            q.Collection('users'),
-            { data: { email } }
-          ),
-          q.Get(
-            q.Match(
-              q.Index('user_by_email'),
-              q.Casefold(user.email)
-            )
-          ))
-        )
+          )
+        );
         return true;
-      } catch (e) {
+      } catch {
         return false;
       }
     },
-  }
-})
+  },
+});
