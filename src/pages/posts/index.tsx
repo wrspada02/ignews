@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { getPrismicClient } from '../../services/prismic';
 import styles from './styles.module.scss';
 import { RichText } from 'prismic-dom';
+import { PrismicLink } from '@prismicio/react';
 
 type Post = {
     slug: string;
@@ -25,11 +26,13 @@ export default function Posts({ posts }: PostsProps) {
             <main className={styles.container}>
                 <section className={styles.posts}>
                     {posts.map((post) => (
-                        <a href="" key={post.slug}>
-                            <time>{post.updatedAt}</time>
-                            <strong>{post.title}</strong>
-                            <p>{post.excerpt}</p>
-                        </a>
+                        <PrismicLink href={`/posts/${String(post.slug)}`} key={post.slug}>
+                            <>
+                                <time>{post.updatedAt}</time>
+                                <strong>{post.title}</strong>
+                                <p>{post.excerpt}</p>
+                            </>
+                        </PrismicLink>
                     ))}
                 </section>
             </main>
@@ -54,7 +57,7 @@ export const getStaticProps: GetStaticProps = async () => {
                 day: '2-digit',
                 month: 'long',
                 year: 'numeric',
-            })
+            }),
         }
     ))
 
